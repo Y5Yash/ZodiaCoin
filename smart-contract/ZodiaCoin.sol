@@ -1,17 +1,37 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
+pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 // import "./lib/Claims.sol";
 
 interface ReclaimContractInterface {
-    struct ClaimInfo {
-        string provider;
-        string parameters;
-        string context;
-    }
-    function assertValidSignedClaimAndInfoHash(uint256 claimId, ClaimInfo memory claimInfo, bytes[] memory signatures) external view;
+    struct CompleteClaimData {
+		bytes32 infoHash;
+		address owner;
+		uint32 timestampS;
+		uint256 claimId;
+		string identifier;
+		uint256 epoch;
+	}
+	struct ClaimInfo {
+		string provider;
+		string parameters;
+		string context;
+	}
+    struct Witness {
+		address addr;
+		string host;
+	}
+    struct Epoch {
+		uint32 id;
+		uint32 timestampStart;
+		uint32 timestampEnd;
+		Witness[] witnesses;
+		uint8 minimumWitnessesForClaimCreation;
+	}
+    function assertValidEpochAndSignedClaim(uint32 epochNum, ClaimInfo memory claimInfo, CompleteClaimData memory claimData, bytes[] memory signatures) external view;
 }
 
 contract FactoryZodiaCoin {
@@ -67,12 +87,14 @@ contract ZodiaCoin is ERC20 {
     address reclaimContractAddress;
     uint32 coinsMinted;
     bytes32 contextMessage;
+    string provider;
 
     constructor(string memory name, string memory symbol, address _reclaimContractAddress, uint256 _startMMDD, uint256 _endMMDD) ERC20(name, symbol) {
         // reclaimInterface = ReclaimContractInterface(reclaimContractAddress);
         reclaimContractAddress = _reclaimContractAddress;
         startMMDD = _startMMDD;
         endMMDD = _endMMDD;
+        provider = "uidai-dob";
         contextMessage = keccak256(abi.encode("ZodiaCoin")); // can be set to name instead; Implications - possibly extra point of failure.
     }
 
@@ -84,10 +106,7 @@ contract ZodiaCoin is ERC20 {
         return false;
     }
 
-    function mint(uint256 _claimId, uint256 _day, uint256 _month, uint256 _year, string memory _provider, address _contextAddress, bytes[] memory _signatures) public {
-        
-        // assert correct zodiac using day and month
-        require(isCorrectZodiac(_day, _month), "Wrong Zodiac");
+    function getParams(uint256 _day, uint256 _month, uint256 _year) internal pure returns (string memory) {
 
         // add 0 to days and months less than 10. Convert them to string.
         string memory dayStr = Strings.toString(_day);
@@ -100,20 +119,35 @@ contract ZodiaCoin is ERC20 {
         }
         string memory yearStr = Strings.toString(_year);
 
+        string memory params = string(abi.encodePacked("{\"dob\":\"", yearStr, "-", monthStr, "-", dayStr, "\"}"));
+
+        return params;
+    }
+
+    function airDrop(uint32 _epoch, uint256 _day, uint256 _month, uint256 _year, string memory _provider, address _contextAddress, ReclaimContractInterface.CompleteClaimData memory _claimData, bytes[] memory _signatures) public {
+        
+        // assert correct zodiac using day and month
+        require(isCorrectZodiac(_day, _month), "Wrong Zodiac");
+
+        // check if correct provider is used
+        require( keccak256(abi.encodePacked(_provider)) == keccak256(abi.encodePacked(provider)), "Provider strings don't match." );
+
+        // construct params string from the transaction inputs
+        string memory params = getParams(_day, _month, _year);
+
         // generate context from contextMessage (constant) and contextAddress (user-defined)
         string memory contextAddressString = string(abi.encodePacked(_contextAddress));
         string memory context = string(abi.encodePacked(contextMessage, contextAddressString));
 
-        // Get the parameter string from DOB.
-        string memory params = string(abi.encodePacked("{\"dob\":\"", yearStr, "-", monthStr, "-", dayStr, "\"}"));
-
-        // create a claiminfo struct object and send to reclaim for verification
-        // assertValidSignedClaimAndInfo will revert if either infoHash or Signatures don't match.
+        // create a claiminfo struct object to send to reclaim for verification
         ReclaimContractInterface.ClaimInfo memory claimInfo = ReclaimContractInterface.ClaimInfo(_provider, params, context);
-        ReclaimContractInterface(reclaimContractAddress).assertValidSignedClaimAndInfoHash(_claimId, claimInfo, _signatures);
+
+        // assertValidEpochAndSignedClaim will revert if either infoHash or Signatures don't match.
+        ReclaimContractInterface(reclaimContractAddress).assertValidEpochAndSignedClaim(_epoch, claimInfo, _claimData, _signatures);
 
         // mint to _contextAddress
         coinsMinted+=1;
         _mint(_contextAddress, 1000 * (10 ** decimals()));
     }
+
 }
