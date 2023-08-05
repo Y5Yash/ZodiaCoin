@@ -110,11 +110,15 @@ app.get("/get-proofs/", async (req, res) => {
         const db = client.db();
         const callbackCollection = db.collection('zodiacoin');
         const entry = await callbackCollection.findOne({callbackId: callbackId});
-        if (!entry) {
+        if (!entry ) {
             console.log(callbackId, " not found in the database");
             throw new Error(`${callbackId} not found in the database.`);
-            // return 0;
         }
+        if (entry.proofs?.length === 0 ) {
+            console.log(callbackId, " proof not received");
+            throw new Error(`Proof from ${callbackId} not received from Reclaim Wallet.`);
+        }
+        console.log(entry.proofs);
         res.status(200).json(entry.proofs);
     }
     catch (error) {
