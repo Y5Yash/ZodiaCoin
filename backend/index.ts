@@ -2,8 +2,6 @@ import cors from 'cors';
 import express from 'express';
 import { reclaimprotocol } from "@reclaimprotocol/reclaim-sdk";
 import dotenv from 'dotenv';
-import { ethers } from 'ethers';
-// import contractABI from './smart-contracts/ZodiaCoin.json';
 import { MongoClient } from 'mongodb';
 
 const app = express();
@@ -17,12 +15,13 @@ const reclaim = new reclaimprotocol.Reclaim();
 dotenv.config();
 const dbUsername = process.env.DB_USER;
 const dbPassword = process.env.DB_PWD;
+const callbackBase = process.env.CALLBACK_BASE;
 
 // Connect to MongoDB Atlas. Use other DB if needed.
 const mongoUri = `mongodb+srv://${dbUsername}:${dbPassword}@cluster0.elv9kur.mongodb.net/`;
 const client = new MongoClient(mongoUri, { monitorCommands: true });
 
-const callbackBase = `http://192.168.0.130:${port}`; // Modify this to get from environment
+// const callbackBase = `http://192.168.0.0:${port}`; // Modify this to get from environment
 const callbackUrl = `${callbackBase}/callback`
 
 app.use((req, res, next) => {
@@ -30,11 +29,15 @@ app.use((req, res, next) => {
     next();
 });
 
+// endpoint for the frontend to fetch the reclaim template using sdk.
 app.get("/request-proofs", async (req, res) => {
     try {
+        const {addr: userAddr} = req.query;
         const db = client.db();
         const callbackCollection = db.collection('zodiacoin');
         const request = reclaim.requestProofs({
+            contextMessage: "ZodiaCoin",
+            contextAddress: userAddr as string,
             title: "ZodiaCoin",
             baseCallbackUrl: callbackUrl,
             requestedProofs: [
@@ -60,6 +63,7 @@ app.get("/request-proofs", async (req, res) => {
     return;
 });
 
+// endpoint where Reclaim Wallet sends the proof to the backend
 app.use(express.text({ type: "*/*" }));
 app.post("/callback/", async (req, res) => {
     try {
@@ -99,6 +103,7 @@ app.post("/callback/", async (req, res) => {
     return;
 });
 
+// endpoint where the frontend queries for the proof received from reclaim
 app.get("/get-proofs/", async (req, res) => {
     try {
         const {id: callbackId} = req.query;
