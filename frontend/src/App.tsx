@@ -52,6 +52,9 @@ const App: React.FC = () => {
     const [txHash, setTxHash] = useState('');
     const [currentContractAddress, setCurrentContractAddress] = useState('');
     const [tokenName, setTokenName] = useState('');
+    const [isFetchingTemplate, setIsFetchingTemplate] = useState(false);
+    const [isFetchingProof, setIsFetchingProof] = useState(false);
+    const [isFetchingTx, setIsFetchingTx] = useState(false);
 
     const backendBase = 'https://zodiacoin-backend.onrender.com';
     const backendTemplateUrl = `${backendBase}/request-proofs`;
@@ -89,6 +92,7 @@ const App: React.FC = () => {
       };
 
       const initiateAirDrop = async () => {
+        setIsFetchingTx(true);
         if (window.ethereum) {
             try {
                 const param = JSON.parse(proofObj?.parameters as string);
@@ -154,9 +158,12 @@ const App: React.FC = () => {
                 setIsAirdropped(false);
             }
         }
+        setIsFetchingTx(false);
+        return;
       };
 
       const handleGetTemplate = async () => {
+        setIsFetchingTemplate(true);
         try {
           console.log(`Requesting ${backendTemplateUrl}?addr=${defaultAccount}`);
           const response = await fetch(`${backendTemplateUrl}?addr=${defaultAccount}`);
@@ -181,10 +188,12 @@ const App: React.FC = () => {
           setTemplate('Error: ' + error);
           console.log(error);
         }
+        setIsFetchingTemplate(false);
         return;
       };
 
       const handleGetProof = async () => {
+        setIsFetchingProof(true);
         try {
           console.log(`Requesting ${backendProofUrl}?id=${callbackId}`);
           const response = await fetch(`${backendProofUrl}?id=${callbackId}`);
@@ -200,6 +209,7 @@ const App: React.FC = () => {
           console.log(error);
         }
         setIsFetchMsgClicked(true);
+        setIsFetchingProof(false)
         return;
       };
 
@@ -220,7 +230,10 @@ const App: React.FC = () => {
 
                         { isMetamask && defaultAccount && !template && !isProofReceived &&
                             // Await for the template
-                            <button onClick={handleGetTemplate} >Get the proof link/QR</button>
+                            <div className='button-container'>
+                              {<button onClick={handleGetTemplate} disabled={isFetchingTemplate}>Get the proof link/QR</button>}
+                              {isFetchingTemplate && <div className='loading-spinner'/>}
+                            </div>
                         }
 
                         { isMetamask && defaultAccount && template && isTemplateOk && !isProofReceived &&
@@ -228,7 +241,10 @@ const App: React.FC = () => {
                             // Display message if proof is not submitted when button is pressed
                             <div>
                                 <div>Scan the QR code or click on it to be redirected.</div>
-                                <button onClick={handleGetProof}>Fetch Proof</button>
+                                <div className='button-container'>
+                                  <button onClick={handleGetProof} disabled={isFetchingProof}>Fetch Proof</button>
+                                  {isFetchingProof && <div className='loading-spinner'/>}
+                                </div>
                                 {isFetchedMsgClicked && 
                                     <div className='error-txn'>Proof not yet received at the backend.
                                         <br/>Wait for the success message on the Reclaim Wallet and retry again. 
@@ -244,7 +260,10 @@ const App: React.FC = () => {
 
                         { isMetamask && isProofReceived && !isAirdropped &&
                             // initiate transaction if proof is received.
-                            <button onClick={initiateAirDrop}>Airdrop me!</button>
+                            <div className='button-container'>
+                              <button onClick={initiateAirDrop} disabled={isFetchingTx}>Airdrop me!</button>
+                              {isFetchingTx && <div className='loading-spinner'/>}
+                            </div>
                         }
                         
                         { isAirdropped && 

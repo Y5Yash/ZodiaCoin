@@ -186,3 +186,27 @@ button {
   /* padding-left: 1em;
   padding-right: 1em; */
 }
+
+@keyframes spinner {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+.loading-spinner {
+  padding: 0.5em;
+  width: 1em;
+  height: 1em;
+  border: 2px solid #f3f3f3; /* Light grey */
+  border-top: 2px solid #383636; /* Black */
+  border-radius: 50%;
+  animation: spinner 1.5s linear infinite;
+}
+
+.button-container {
+  align-items: center;
+  display: flex;
+  justify-content: center;
+}
