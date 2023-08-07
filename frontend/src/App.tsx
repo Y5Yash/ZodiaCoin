@@ -23,7 +23,20 @@ const contractAddresses = [
     '0x3261557D92362CF19be96067b6CC09822D91CdBb',
     '0x38F3cAc6fD71730AEA4c9943853065c3C2D6F121'
   ];
-
+const tokenNameList = [
+  'Aries Coin',
+  'Taurus Coin',
+  'Gemini Coin',
+  'Cancer Coin',
+  'Leo Coin',
+  'Virgo Coin',
+  'Libra Coin',
+  'Scorpio Coin',
+  'Sagittarius Coin',
+  'Capricorn Coin',
+  'Aquarius Coin',
+  'Pisces Coin'
+]
 // Reclaim temp Contract address: 0x7a39200A79d87A8c848e90406cc4708E73aCB3A1
 
 const App: React.FC = () => {
@@ -35,6 +48,10 @@ const App: React.FC = () => {
     const [isProofReceived, setIsProofReceived] = useState(false);
     const [proofObj, setProofObj] = useState<Proof>()
     const [isFetchedMsgClicked, setIsFetchMsgClicked] = useState(false);
+    const [isAirdropped, setIsAirdropped] = useState(false);
+    const [txHash, setTxHash] = useState('');
+    const [currentContractAddress, setCurrentContractAddress] = useState('');
+    const [tokenName, setTokenName] = useState('');
 
     const backendBase = 'https://zodiacoin-backend.onrender.com';
     const backendTemplateUrl = `${backendBase}/request-proofs`;
@@ -108,12 +125,14 @@ const App: React.FC = () => {
 
                 const zodiacAddress = await provider._getAddress(contractAddresses[zodiacNum - 1]);
                 console.log(zodiacAddress);
+                setCurrentContractAddress(zodiacAddress);
+                setTokenName(tokenNameList[zodiacNum -1]);
                 const contractZodiac = new ethers.Contract(zodiacAddress, contractABI, provider.getSigner());
 
                 const overrides = {gasLimit: 1000000};
 
-                console.log(proofObj?.ownerPublicKey)
-                console.log(proofObj?.epoch, day, month, year, proofObj?.provider, defaultAccount, claimData, proofObj?.signatures, overrides);
+                // console.log(proofObj?.ownerPublicKey)
+                // console.log(proofObj?.epoch, day, month, year, proofObj?.provider, defaultAccount, claimData, proofObj?.signatures, overrides);
                 console.log(proofObj?.epoch, " <- epoch");
                 console.log(day, " <- day");
                 console.log(month, " <- month")
@@ -124,12 +143,15 @@ const App: React.FC = () => {
                 console.log(proofObj?.signatures[0], "<- proofObj.signatures[0]")
 
                 const tx = await contractZodiac.airDrop(proofObj?.epoch, day, month, year, proofObj?.provider, defaultAccount, claimData, proofObj?.signatures, overrides);
-                console.log("the transaction hash is : ", tx);
+                console.log("the transaction hash is : ", tx.hash);
                 const receipt = await tx.wait();
                 console.log("the transaction receipt is : ", receipt);
+                setIsAirdropped(true);
+                setTxHash(tx.hash);
             }
             catch (error) {
                 console.log(error);
+                setIsAirdropped(false);
             }
         }
       };
@@ -220,9 +242,16 @@ const App: React.FC = () => {
                             <div>{template}</div>
                         }
 
-                        { isMetamask && isProofReceived &&
+                        { isMetamask && isProofReceived && !isAirdropped &&
                             // initiate transaction if proof is received.
                             <button onClick={initiateAirDrop}>Airdrop me!</button>
+                        }
+                        
+                        { isAirdropped && 
+                          <div>
+                            <div>Transaction Hash: {txHash}</div><br/>
+                            <div>Import {tokenName} from: {currentContractAddress}</div>
+                          </div>
                         }
                     </div>
                 </div>

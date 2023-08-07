@@ -65,9 +65,9 @@ app.get("/request-proofs", async (req, res) => {
 
 // endpoint where Reclaim Wallet sends the proof to the backend
 app.use(express.text({ type: "*/*" }));
-app.post("/callback/", async (req, res) => {
+app.post("/callback", async (req, res) => {
     try {
-        const {id: callbackId} = req.query;
+        const {callbackId: callbackId} = req.query;
         console.log("[Callback -- TEMP] -- CallbackId from RW: ", callbackId);
         console.log("[Callback -- TEMP] -- Body from RW: ", req.body);
         const { proofs } = JSON.parse(decodeURIComponent(req.body));
@@ -114,7 +114,8 @@ app.get("/get-proofs/", async (req, res) => {
             console.log(callbackId, " not found in the database");
             throw new Error(`${callbackId} not found in the database.`);
         }
-        if (entry.proofs?.length === 0 ) {
+        console.log(entry.proofs);
+        if (entry.proofs == undefined || entry.proofs?.length == 0 ) {
             console.log(callbackId, " proof not received");
             throw new Error(`Proof from ${callbackId} not received from Reclaim Wallet.`);
         }
