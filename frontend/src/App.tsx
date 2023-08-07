@@ -7,7 +7,7 @@ import contractABI from './assets/ZodiaCoin.json';
 import { Proof } from '@reclaimprotocol/reclaim-sdk'
 import { CompleteClaimData, ClaimInfo, createSignDataForClaim } from '@reclaimprotocol/crypto-sdk';
 
-const provider = new ethers.providers.Web3Provider(window.ethereum);
+let provider = new ethers.providers.Web3Provider(window.ethereum);
 
 const contractAddresses = [
     '0xc0485Cff38E35F526E0eEb5f486d4b9d18b528b0',
@@ -62,6 +62,9 @@ const App: React.FC = () => {
 
     const connectWalletHandler = () => {
         if (window.ethereum) {
+          const optChainId = 420;
+          provider.send("wallet_switchEthereumChain", [{chainId: `0x${optChainId.toString(16)}`}]);
+          provider = new ethers.providers.Web3Provider(window.ethereum);
           provider.send("eth_requestAccounts", []).then(async () => {
             await accountChangedHandler(provider.getSigner());
           });
