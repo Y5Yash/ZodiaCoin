@@ -119,12 +119,10 @@ const App: React.FC = () => {
                 // console.log(Buffer.from(proofObj!.ownerPublicKey))
 
                 const claimData: CompleteClaimData = {
-                    claimId: 0,
-                    infoHash: proofObj?.identifier as string,
                     owner: ownerAddr,
                     timestampS: Number(proofObj?.timestampS),
-                    identifier: proofObj?.identifier,
-                    epoch: proofObj?.epoch,
+                    identifier: proofObj?.identifier as string,
+                    epoch: proofObj?.epoch as number,
                 }
                 console.log("claimData: ",claimData)
                 const claimDataStr = createSignDataForClaim(claimData);
