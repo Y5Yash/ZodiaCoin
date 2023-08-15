@@ -47,7 +47,7 @@ app.get("/request-proofs", async (req, res) => {
                 }),
             ],
         });
-        const reclaimUrl = await request.getReclaimUrl();
+        const reclaimUrl = await request.getReclaimUrl({shortened: true});
         const {callbackId, template, id} = request;
         console.log("[B-Request-P -- TEMP] -- CallbackId: ", callbackId);
         console.log("[B-Request-P -- TEMP] -- Template: ", template);
@@ -73,8 +73,8 @@ app.post("/callback", async (req, res) => {
         const { proofs } = JSON.parse(decodeURIComponent(req.body));
         console.log("[Callback -- TEMP] -- Proofs: ", proofs);
 
-        const onChainClaimIds = reclaim.getOnChainClaimIdsFromProofs(proofs); // Remove these later
-        console.log("[Callback -- TEMP] -- onChainClaimIds: ", onChainClaimIds);
+        const onChainClaimIds = reclaim.getClaimIdsFromProofs(proofs); // Remove these later
+        console.log("[Callback -- TEMP] -- Claim Ids: ", onChainClaimIds);
         const isProofCorrect = await reclaim.verifyCorrectnessOfProofs(callbackId as string, proofs);
         console.log("[Callback -- TEMP] -- is Proof Correct? ", isProofCorrect);
 
