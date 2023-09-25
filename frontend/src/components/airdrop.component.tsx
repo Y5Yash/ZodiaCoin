@@ -62,6 +62,11 @@ export function AirDrop({proofObj}: {proofObj: Proof}) {
     const args = [proofObj.epoch, day, month, year, proofObj.provider, contextObj.contextAddress, contextObj.sessionId, claimData, proofObj.signatures];
     console.log(args)
 
+    for (let i = 0; i<args.length; i++)
+    {
+        console.log(args[i], typeof(args[i]));
+    }
+
     const getZodiacIdFromProof = (date: number, month: number) => {
         const bday100 = 100*(month%12) + date;
         const sunSignStart = [321, 420, 521, 621, 723, 823, 923, 1023, 1122, 1222, 120, 219, 321];
