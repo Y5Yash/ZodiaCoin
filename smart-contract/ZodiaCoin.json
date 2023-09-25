@@ -113,10 +113,15 @@
 				"type": "address"
 			},
 			{
+				"internalType": "string",
+				"name": "_contextSessionId",
+				"type": "string"
+			},
+			{
 				"components": [
 					{
 						"internalType": "bytes32",
-						"name": "infoHash",
+						"name": "identifier",
 						"type": "bytes32"
 					},
 					{
@@ -128,16 +133,6 @@
 						"internalType": "uint32",
 						"name": "timestampS",
 						"type": "uint32"
-					},
-					{
-						"internalType": "uint256",
-						"name": "claimId",
-						"type": "uint256"
-					},
-					{
-						"internalType": "string",
-						"name": "identifier",
-						"type": "string"
 					},
 					{
 						"internalType": "uint256",
