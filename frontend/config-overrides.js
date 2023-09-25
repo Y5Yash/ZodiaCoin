@@ -4,6 +4,8 @@ module.exports = function override(config) {
 		Object.assign(fallback, { 
     	"crypto": require.resolve("crypto-browserify"),
         "stream": require.resolve("stream-browserify"),
+        "path": require.resolve("path-browserify"),
+        "os": false,
       }) 
    config.resolve.fallback = fallback; 
    config.plugins = (config.plugins || []).concat([ 

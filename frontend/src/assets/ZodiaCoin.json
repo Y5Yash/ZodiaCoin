@@ -113,10 +113,15 @@
 				"type": "address"
 			},
 			{
+				"internalType": "string",
+				"name": "_contextSessionId",
+				"type": "string"
+			},
+			{
 				"components": [
 					{
 						"internalType": "bytes32",
-						"name": "infoHash",
+						"name": "identifier",
 						"type": "bytes32"
 					},
 					{
@@ -128,16 +133,6 @@
 						"internalType": "uint32",
 						"name": "timestampS",
 						"type": "uint32"
-					},
-					{
-						"internalType": "uint256",
-						"name": "claimId",
-						"type": "uint256"
-					},
-					{
-						"internalType": "string",
-						"name": "identifier",
-						"type": "string"
 					},
 					{
 						"internalType": "uint256",
@@ -222,6 +217,84 @@
 				"internalType": "uint256",
 				"name": "",
 				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "coinsMinted",
+		"outputs": [
+			{
+				"internalType": "uint32",
+				"name": "",
+				"type": "uint32"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "context",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "",
+				"type": "string"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "contextAddress",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "contextAddressString",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "",
+				"type": "string"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "contextMessage",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "",
+				"type": "string"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "contextSessionId",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "",
+				"type": "string"
 			}
 		],
 		"stateMutability": "view",

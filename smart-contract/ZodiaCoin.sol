@@ -4,15 +4,13 @@ pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
-// import "./lib/Claims.sol";
+
 
 interface ReclaimContractInterface {
     struct CompleteClaimData {
-		bytes32 infoHash;
+		bytes32 identifier;
 		address owner;
 		uint32 timestampS;
-		uint256 claimId;
-		string identifier;
 		uint256 epoch;
 	}
 	struct ClaimInfo {
@@ -124,7 +122,14 @@ contract ZodiaCoin is ERC20 {
         return params;
     }
 
-    function airDrop(uint32 _epoch, uint256 _day, uint256 _month, uint256 _year, string memory _provider, address _contextAddress, ReclaimContractInterface.CompleteClaimData memory _claimData, bytes[] memory _signatures) public {
+    function makeContext(address _contextAddress, string memory _contextSessionId) internal view returns (string memory) {
+        string memory contextAddressString = string(abi.encodePacked(_contextAddress));
+        string memory context = string(abi.encodePacked("{\"contextAddress\":\"", contextAddressString, "\",\"contextMessage\":\"", contextMessage, "\",\"sessionId\":\"", _contextSessionId, "\"}"));
+
+        return context;
+    }
+
+    function airDrop(uint32 _epoch, uint256 _day, uint256 _month, uint256 _year, string memory _provider, address _contextAddress, string memory _contextSessionId, ReclaimContractInterface.CompleteClaimData memory _claimData, bytes[] memory _signatures) public {
         
         // assert correct zodiac using day and month
         require(isCorrectZodiac(_day, _month), "Wrong Zodiac");
@@ -135,9 +140,8 @@ contract ZodiaCoin is ERC20 {
         // construct params string from the transaction inputs
         string memory params = getParams(_day, _month, _year);
 
-        // generate context from contextMessage (constant) and contextAddress (user-defined)
-        string memory contextAddressString = string(abi.encodePacked(_contextAddress));
-        string memory context = string(abi.encodePacked(contextMessage, contextAddressString));
+        // generate context from contextMessage (constant), contextAddress (user-defined), and sessionId
+        string memory context = makeContext(_contextAddress, _contextSessionId);
 
         // create a claiminfo struct object to send to reclaim for verification
         ReclaimContractInterface.ClaimInfo memory claimInfo = ReclaimContractInterface.ClaimInfo(_provider, params, context);
