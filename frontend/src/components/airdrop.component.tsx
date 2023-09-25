@@ -88,7 +88,7 @@ export function AirDrop({proofObj}: {proofObj: Proof}) {
             console.log('Successful - proof prepare: ', data);
         },
         onError(error) {
-            // console.log('Error in verify Proof: ', error);
+            console.log('Error in verify Proof: ', error);
             window.alert('Error: Try by manually switching network to Optimism Goerli testnet.\nRPC: https://goerli.optimism.io\nChain Id: 420\ncheck console.log if this doesn\'t work either.')
         }
     });
