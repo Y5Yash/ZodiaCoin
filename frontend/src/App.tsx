@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import './App.css';
 import QRCode from 'react-qr-code';
 import { Navbar } from './components/navbar.component';
-import { AirDrop } from './components/test.component';
+import { AirDrop } from './components/airdrop.component';
 import { Proof } from '@reclaimprotocol/reclaim-sdk';
 // wagmi
 import { useAccount } from 'wagmi';
@@ -90,21 +90,24 @@ const App: React.FC = () => {
             <br/>
 
             {!isConnected &&
-              <div>Connect to a wallet from the navbar</div>
+              <div>Connect to a wallet from the navbar to begin!</div>
             }
 
             {isConnected && !template &&
-              <div className='button-container'>
-                {<button onClick={handleGetTemplate} disabled={isFetchingTemplate}>Get the proof link/QR</button>}
-                {isFetchingTemplate && <div className='loading-spinner'/>}
-              </div>
+              <>
+                <div>Click the button below to generate a proof (may take upto a minute).</div>
+                <div className='button-container'>
+                  {<button className='glow-on-hover' onClick={handleGetTemplate} disabled={isFetchingTemplate}>Get the proof link/QR</button>}
+                  {isFetchingTemplate && <div className='loading-spinner'/>}
+                </div>
+              </>
             }
 
             { isConnected && template && isTemplateOk && !isProofReceived &&
               <div>
                 <div>Scan the QR code or click on it to be redirected.</div>
                 <div className='button-container'>
-                  <button onClick={handleGetProof} disabled={isFetchingProof}>Fetch Proof</button>
+                  <button className='glow-on-hover' onClick={handleGetProof} disabled={isFetchingProof}>Fetch Proof</button>
                   {isFetchingProof && <div className='loading-spinner'/>}
                 </div>
                 {isFetchedMsgClicked && 
