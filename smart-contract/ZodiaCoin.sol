@@ -34,7 +34,7 @@ interface ReclaimContractInterface {
 
 contract FactoryZodiaCoin {
     address[] public deployedContracts;
-    
+
     constructor(address reclaimContractAddress) {
         // Aries Coin
         ZodiaCoin AriesCoin = new ZodiaCoin("Aries", "ARCN", reclaimContractAddress, 321, 420);
@@ -83,22 +83,29 @@ contract ZodiaCoin is ERC20 {
     uint256 startMMDD;
     uint256 endMMDD;
     address reclaimContractAddress;
-    uint32 coinsMinted;
-    bytes32 contextMessage;
     string provider;
+    uint32 public coinsMinted;
+    string public contextMessage;
+    // string public contextSessionId;
+    // address public contextAddress;
+    // string public contextAddressString;
+    // string public context;
 
+    bytes _SYMBOLS = "0123456789abcdef";
+    bytes _CAPITAL = "0123456789ABCDEF";
+    
     constructor(string memory name, string memory symbol, address _reclaimContractAddress, uint256 _startMMDD, uint256 _endMMDD) ERC20(name, symbol) {
         // reclaimInterface = ReclaimContractInterface(reclaimContractAddress);
         reclaimContractAddress = _reclaimContractAddress;
         startMMDD = _startMMDD;
         endMMDD = _endMMDD;
         provider = "uidai-dob";
-        contextMessage = keccak256(abi.encode("ZodiaCoin")); // can be set to name instead; Implications - possibly extra point of failure.
+        contextMessage = "0x9efe9c1a82003dcca1be169c09f323fc5ee8d34f0e6d8b98c9f5bddbb97f7a22"; // can be set to name instead; Implications - possibly extra point of failure.
     }
 
     function isCorrectZodiac(uint256 _day, uint256 _month) internal view returns (bool){
         uint256 dayOfYearMMDD = _month*100 + _day;
-        if (startMMDD <= dayOfYearMMDD && dayOfYearMMDD < endMMDD) {
+        if (startMMDD <= dayOfYearMMDD && (dayOfYearMMDD % 1200) < endMMDD) {
             return true;
         }
         return false;
@@ -122,11 +129,55 @@ contract ZodiaCoin is ERC20 {
         return params;
     }
 
-    function makeContext(address _contextAddress, string memory _contextSessionId) internal view returns (string memory) {
-        string memory contextAddressString = string(abi.encodePacked(_contextAddress));
-        string memory context = string(abi.encodePacked("{\"contextAddress\":\"", contextAddressString, "\",\"contextMessage\":\"", contextMessage, "\",\"sessionId\":\"", _contextSessionId, "\"}"));
+    // Implement EIP-55 for context address string
+    function addressToChecksumString(address tempaddr) public view returns (string memory) {
+        bytes memory lowercase = addressToLowercaseBytes(tempaddr); // get address in lowercase hex without '0x'
+        bytes32 hashed_addr = keccak256(abi.encodePacked(lowercase)); // get the hash of the lowercase address
 
-        return context;
+        bytes memory result = new bytes(42); // store checksum address with '0x' prepended in this.
+        result[0] = '0';
+        result[1] = 'x';
+
+        uint160 addrValue = uint160(tempaddr);
+        uint160 hashValue = uint160(bytes20(hashed_addr));
+        for (uint i = 41; i>1; --i) {
+            uint addrIndex = addrValue & 0xf;
+            uint hashIndex = hashValue & 0xf;
+            if (hashIndex > 7) {
+                result[i] = _CAPITAL[addrIndex];
+            }
+            else {
+                result[i] = _SYMBOLS[addrIndex];
+            }
+            addrValue >>= 4;
+            hashValue >>= 4;
+        }
+        return string(abi.encodePacked(result));
+    }
+
+    // get small case character corresponding to a byte.
+    function getChar(bytes1 b) internal pure returns (bytes1 c) {
+		if (uint8(b) < 10) return bytes1(uint8(b) + 0x30);
+		else return bytes1(uint8(b) + 0x57);
+	}
+
+    // get convert address bytes to lowercase char hex bytes (without '0x').
+    function addressToLowercaseBytes(address x) internal pure returns (bytes memory) {
+		bytes memory s = new bytes(40);
+		for (uint i = 0; i < 20; i++) {
+			bytes1 b = bytes1(uint8(uint(uint160(x)) / (2 ** (8 * (19 - i)))));
+			bytes1 hi = bytes1(uint8(b) / 16);
+			bytes1 lo = bytes1(uint8(b) - 16 * uint8(hi));
+			s[2 * i] = getChar(hi);
+			s[2 * i + 1] = getChar(lo);
+		}
+        return s;
+	}
+
+    function makeContext(address _contextAddress, string memory _contextSessionId) public view returns (string memory) {
+        string memory contextAddressString = addressToChecksumString(_contextAddress);
+        string memory contextString = string(abi.encodePacked("{\"contextAddress\":\"", contextAddressString, "\",\"contextMessage\":\"", contextMessage, "\",\"sessionId\":\"", _contextSessionId, "\"}"));
+        return contextString;
     }
 
     function airDrop(uint32 _epoch, uint256 _day, uint256 _month, uint256 _year, string memory _provider, address _contextAddress, string memory _contextSessionId, ReclaimContractInterface.CompleteClaimData memory _claimData, bytes[] memory _signatures) public {
@@ -155,3 +206,8 @@ contract ZodiaCoin is ERC20 {
     }
 
 }
+
+
+// Semaphore Address: 0x3889927F0B5Eb1a02C6E2C20b39a1Bd4EAd76131
+// Reclaim Address: 0xF93F605142Fb1Efad7Aa58253dDffF67775b4520
+// Witness Address: 0x244897572368Eadf65bfBc5aec98D8e5443a9072
